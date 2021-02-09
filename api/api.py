@@ -1,8 +1,16 @@
-import time
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
+db = SQLAlchemy()
 
-@app.route('/time')
-def get_current_time():
-    return {'time': time.time()}
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+
+    db.init_app(app)
+
+    from .views import main
+    app.register_blueprint(main)
+    
+    return app
+
