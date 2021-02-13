@@ -1,16 +1,71 @@
-from flask import Flask
+from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
+import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+from functools import wraps
+import requests, json
 
-db = SQLAlchemy()
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secretkey'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 
-def create_app():
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+db = SQLAlchemy(app)
 
-    db.init_app(app)
+def token_required (f):
+    @wraps(f)
+    def decorated (*args, **kwargs):
+        token = None
 
-    from .views import main
-    app.register_blueprint(main)
-    
-    return app
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+        if not token:
+            return jsonify({'message': 'Token is missing!'})
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithm='HS256')
+            current_user = User.query.filter_by(id=data['id']).first()
+        except:
+            return jsonify({'message': 'Token is invalid'})
+        return f(current_user, *args, **kwargs)
+    return decorated
 
+class User(db.Model):
+    id = db.Column (db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    password = db.Column(db.String(80))
+
+
+@app.route('/register', methods=['POST'])
+def register ():
+    data = request.get_json(force=True)
+    hashed_password = generate_password_hash(data['password'], method = 'sha256')
+    new_user = User(name=data['name'], password = hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'message': 'New user created'})
+
+@app.route('/login')
+def login ():
+    auth = request.authorization
+    if not auth or not auth.username or not auth.password:
+        return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+    user = User.query.filter_by(name = auth.username).first()
+    if not user: 
+        return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+    if check_password_hash(user.password, auth.password):
+        token = jwt.encode({'id':user.id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=60)}, app.config['SECRET_KEY'], algorithm='HS256')
+        return jsonify({'token': token.decode('UTF-8')})
+    return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+
+@app.route('/search')
+@token_required
+def search(current_user):
+    url = "http://www.omdbapi.com/"
+    movie = request.get_json(force=True)
+    payload = {"t": movie['Title'], "apikey": "c66fa948"}
+    r = requests.get(url, params=payload)
+    b = json.loads(r.content)
+    return b
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
