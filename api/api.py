@@ -38,34 +38,63 @@ class User(db.Model):
 
 @app.route('/register', methods=['POST'])
 def register ():
-    data = request.get_json(force=True)
+    data = request.get_json()
     hashed_password = generate_password_hash(data['password'], method = 'sha256')
     new_user = User(name=data['name'], password = hashed_password)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'New user created'})
 
-@app.route('/login')
+# @app.route('/login')
+# def login ():
+#     auth = request.authorization
+#     if not auth or not auth.username or not auth.password:
+#         return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+#     user = User.query.filter_by(name = auth.username).first()
+#     if not user: 
+#         return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+#     if check_password_hash(user.password, auth.password):
+#         token = jwt.encode({'id':user.id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=60)}, app.config['SECRET_KEY'], algorithm='HS256')
+#         return jsonify({'token': token.decode('UTF-8')})
+#     return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+
+@app.route('/login', methods=['POST'])
 def login ():
-    auth = request.authorization
-    if not auth or not auth.username or not auth.password:
-        return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
-    user = User.query.filter_by(name = auth.username).first()
-    if not user: 
-        return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
-    if check_password_hash(user.password, auth.password):
-        token = jwt.encode({'id':user.id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=60)}, app.config['SECRET_KEY'], algorithm='HS256')
-        return jsonify({'token': token.decode('UTF-8')})
-    return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
+    data = request.get_json()
+    name, password = data.get('name'), data.get('password')
+
+    if name is None or password is None:
+        return make_response(jsonify({
+            "error": "name and password are mandatory fields"
+        }), 400)
+
+    user = User.query.filter_by(name=name).first()
+    if not user or not check_password_hash(user.password, password):
+        return make_response(jsonify({
+            "error": "Wrong username or password"
+        }), 403)
+
+    token = jwt.encode(
+        {
+            'id': user.id,
+            'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=60)
+        },
+        app.config['SECRET_KEY'],
+        algorithm='HS256'
+    ).decode('UTF-8')
+
+    return make_response(jsonify({
+        "token": token
+    }), 200)
 
 @app.route('/search')
 @token_required
 def search(current_user):
     url = "http://www.omdbapi.com/"
-    movie = request.get_json(force=True)
-    payload = {"t": movie['Title'], "apikey": "c66fa948"}
+    movie = request.args.get('title')
+    payload = {"s": movie, "apikey": "c66fa948"}
     r = requests.get(url, params=payload)
-    b = json.loads(r.content)
-    return b
+    return r.json()
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
