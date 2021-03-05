@@ -6,10 +6,12 @@ import jwt
 import datetime
 from functools import wraps
 import requests, json
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+CORS(app)
 
 db = SQLAlchemy(app)
 
@@ -43,7 +45,7 @@ def register ():
     new_user = User(name=data['name'], password = hashed_password)
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({'message': 'New user created'})
+    return make_response(jsonify({'message': 'New user created'}),200)
 
 # @app.route('/login')
 # def login ():
@@ -81,7 +83,7 @@ def login ():
         },
         app.config['SECRET_KEY'],
         algorithm='HS256'
-    ).decode('UTF-8')
+    )
 
     return make_response(jsonify({
         "token": token
