@@ -25,7 +25,7 @@ def token_required (f):
         if not token:
             return jsonify({'message': 'Token is missing!'})
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithm='HS256')
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms='HS256')
             current_user = User.query.filter_by(id=data['id']).first()
         except:
             return jsonify({'message': 'Token is invalid'})
@@ -89,14 +89,15 @@ def login ():
         "token": token
     }), 200)
 
-@app.route('/search')
+@app.route('/search', methods=['POST'])
 @token_required
 def search(current_user):
     url = "http://www.omdbapi.com/"
-    movie = request.args.get('title')
-    payload = {"s": movie, "apikey": "c66fa948"}
+    movie = request.get_json()
+    print(movie)
+    payload = {"s": movie['movie'], "apikey": "c66fa948"}
     r = requests.get(url, params=payload)
     return r.json()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

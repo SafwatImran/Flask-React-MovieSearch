@@ -3,7 +3,7 @@ import React, {useState} from 'react'
 import { Button, Form } from 'semantic-ui-react'
 
 
-const Login = () => {
+const Login = ({login}) => {
     const [name, setName] = useState('');
     const [pass, setPass] = useState('');
     const [loggedIn,setLoggedIn] = useState(false)
@@ -14,6 +14,7 @@ const Login = () => {
             password : pass
         }).then(res =>{
             localStorage.setItem("token",res.data.token)
+            login(true)
         })
         }
     return (
