@@ -39,6 +39,7 @@ class User(db.Model):
 
 
 @app.route('/register', methods=['POST'])
+
 def register ():
     data = request.get_json()
     hashed_password = generate_password_hash(data['password'], method = 'sha256')
@@ -61,6 +62,7 @@ def register ():
 #     return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
 
 @app.route('/login', methods=['POST'])
+
 def login ():
     data = request.get_json()
     name, password = data.get('name'), data.get('password')
@@ -94,10 +96,9 @@ def login ():
 def search(current_user):
     url = "http://www.omdbapi.com/"
     movie = request.get_json()
-    print(movie)
     payload = {"s": movie['movie'], "apikey": "c66fa948"}
     r = requests.get(url, params=payload)
     return r.json()
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

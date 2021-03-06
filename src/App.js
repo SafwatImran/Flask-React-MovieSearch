@@ -22,11 +22,12 @@ function App() {
     <h1> Welcome to my movie-search website!</h1>
       <Header login={setLoggedIn}/>    
     </div>
-    <Route path = '/login' component={Login, Searchbar}>
+    <Route path = '/login' exact component={Login, Searchbar}>
     {loggedIn? <Searchbar/>:<Login login = {setLoggedIn}/>}
     </Route>
     </div>
-    <Route path='/register' component={Register}></Route>
+    <Route path='/register' exact component={Register}></Route>
+    <Route path ='/search' exact component = {Searchbar}></Route>
     </Router>
   );
 }
