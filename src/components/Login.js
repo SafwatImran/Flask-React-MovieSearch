@@ -8,15 +8,17 @@ const Login = ({login}) => {
     const [pass, setPass] = useState('');
     const [loggedIn,setLoggedIn] = useState(false)
     const buttonOnClick = (event) =>{
-        console.log(event)
-        axios.post('login',{
-            name: name,
-            password : pass
+        axios.post('login',
+        {
+            'name': name,
+            'password' : pass
         }).then(res =>{
             localStorage.setItem("token",res.data.token)
             login(true)
+        }, (error)=>{
+            console.log(error)
         })
-        }
+    }
     return (
     <>
     <div className='register form-control'> 

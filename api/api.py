@@ -39,11 +39,13 @@ class User(db.Model):
 
 
 @app.route('/register', methods=['POST'])
-
 def register ():
     data = request.get_json()
-    hashed_password = generate_password_hash(data['password'], method = 'sha256')
-    new_user = User(name=data['name'], password = hashed_password)
+    name, password = data.get('name'), data.get('password')
+    if User.query.filter_by(name=name).first():
+        return make_response(jsonify({'message':'Username already exists!'}),409)
+    hashed_password = generate_password_hash(password, method = 'sha256')
+    new_user = User(name=name, password = hashed_password)
     db.session.add(new_user)
     db.session.commit()
     return make_response(jsonify({'message': 'New user created'}),200)
@@ -62,11 +64,10 @@ def register ():
 #     return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm = "Login required!"'})
 
 @app.route('/login', methods=['POST'])
-
 def login ():
     data = request.get_json()
     name, password = data.get('name'), data.get('password')
-
+    print(name,password)
     if name is None or password is None:
         return make_response(jsonify({
             "error": "name and password are mandatory fields"

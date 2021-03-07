@@ -1,8 +1,9 @@
-import {Link} from 'react-router-dom'
+import {Link, Redirect} from 'react-router-dom'
 const Header = ({login}) => {
     const buttonOnClick = (event) =>{
         localStorage.removeItem('token')
         login(false)
+        {<Redirect to="/login"/>}
     }
     
     return (
