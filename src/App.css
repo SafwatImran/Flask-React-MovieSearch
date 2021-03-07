@@ -107,3 +107,11 @@ body {
   background-color: #3a63ad;
   color: white;
 }
+
+.movie{
+  display: inline-block;
+  box-sizing: content-box;
+  margin: 10px;
+  padding: 10px;
+
+}

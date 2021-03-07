@@ -97,7 +97,7 @@ def login ():
 def search(current_user):
     url = "http://www.omdbapi.com/"
     movie = request.get_json()
-    payload = {"s": movie['movie'], "apikey": "c66fa948"}
+    payload = {"s": movie['movie'], "apikey": "c66fa948", "type":"movie"}
     r = requests.get(url, params=payload)
     return r.json()
 
