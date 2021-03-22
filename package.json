@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start-api": "cd api && venv\\Scripts\\flask run --debugger",
+    "start-api": "set FLASK_ENV=development && cd api && venv\\Scripts\\flask run",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -41,5 +41,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://43.251.87.35/"
+  "proxy": "http://43.251.87.40/"
 }

@@ -3,11 +3,10 @@ import React, {useState} from 'react'
 import { Button, Form } from 'semantic-ui-react'
 import Movies from './Movies'
 
-let movieData={};
-
 const Searchbar = () => {
   const [text, setText] = useState('')
   const [searched, setSearched] = useState(false)
+  const [movieData, setMovieData] = useState({});
 
   let token = localStorage.getItem('token')
   const searchMovie = (text) =>{
@@ -21,7 +20,8 @@ const Searchbar = () => {
       }
     }
     axios.post('search',data,options).then((res)=>{
-      movieData = res.data
+      setMovieData(res.data);
+      // movieData = res.data
       setSearched(!searched)
       console.log(movieData['Search'])
       
@@ -37,11 +37,10 @@ const Searchbar = () => {
           <Form.Field>
           <label>Search for a movie</label>
           <input placeholder='Search' value={text} onChange={(e)=>setText(e.target.value)}/>
-          {searched?<Button className='btn'type='button' onClick={(e)=>searchMovie(text)} >Clear</Button> :
-          <Button className='btn'type='button' onClick={(e)=>searchMovie(text)} >Search</Button>}
+          <Button className='btn'type='button' onClick={(e)=>searchMovie(text)} >Search</Button>
           </Form.Field>
         </Form>
-        {searched? <Movies movieData ={movieData['Search']}/>:''}
+        <Movies movieData ={movieData['Search']}/>
         </>
     )}
 

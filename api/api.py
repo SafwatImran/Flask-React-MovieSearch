@@ -67,7 +67,6 @@ def register ():
 def login ():
     data = request.get_json()
     name, password = data.get('name'), data.get('password')
-    print(name,password)
     if name is None or password is None:
         return make_response(jsonify({
             "error": "name and password are mandatory fields"
