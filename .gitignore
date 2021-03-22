@@ -26,5 +26,4 @@ yarn-error.log*
 /api/.vscode
 /api/venv/*
 /api/.env
-/api/_pycache_
 /api/Users.db
